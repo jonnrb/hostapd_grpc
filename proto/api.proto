@@ -1,0 +1,33 @@
+syntax = 'proto3';
+
+package hostapd;
+
+service HostapdControl {
+  rpc Ping (PingRequest) returns (PongResponse) {}
+  rpc ListClients (ListRequest) returns (ListResponse) {}
+}
+
+message PingRequest {}
+
+message PongResponse {}
+
+message ListRequest {}
+
+message Client {
+  string addr = 1;
+
+  repeated string flag = 2;
+
+  uint32 connected_time = 3;
+  uint32 idle_msec = 4;
+
+  uint32 rx_packets = 5;
+  uint32 tx_packets = 6;
+
+  uint32 rx_bytes = 7;
+  uint32 tx_bytes = 8;
+}
+
+message ListResponse {
+  repeated Client client = 1;
+}
