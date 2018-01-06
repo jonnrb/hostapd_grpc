@@ -1,4 +1,4 @@
-# hostapd_grpc
+# hostapd_grpc [![Docker Automated Build](https://img.shields.io/docker/automated/jonnrb/hostapd_grpc.svg)](https://hub.docker.com/r/jonnrb/hostapd_grpc/) [![Docker Build Status](https://img.shields.io/docker/build/jonnrb/hostapd_grpc.svg)](https://hub.docker.com/r/jonnrb/hostapd_grpc/)
 
 Do you use `hostapd` to run your Wi-Fi? Did you know there's a nifty control
 socket it exports to let you do normal router stuff with it? Yeah neither did
