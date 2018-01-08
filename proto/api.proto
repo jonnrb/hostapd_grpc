@@ -1,17 +1,54 @@
+// NOT STABLE YET. NON MANGIARE
+
 syntax = 'proto3';
 
 package hostapd;
 
 service HostapdControl {
+  rpc ListSockets (ListSocketsRequest) returns (SocketList) {}
   rpc Ping (PingRequest) returns (PongResponse) {}
-  rpc ListClients (ListRequest) returns (ListResponse) {}
+  rpc ListClients (ListClientsRequest) returns (ListClientsResponse) {}
 }
 
-message PingRequest {}
+enum ErrorCode {
+  OK = 0;
+  DEADLINE_EXCEEDED = 1;
+  INTERNAL = 2;
+}
 
-message PongResponse {}
+message SocketError {
+  string msg = 1;
+  ErrorCode code = 2;
+  int32 c_errno = 3;
+}
 
-message ListRequest {}
+message ListSocketsRequest {}
+
+message Socket {
+  string name = 1;
+}
+
+message SocketList {
+  repeated Socket socket = 1;
+}
+
+message PingRequest {
+  // no socket name pings all sockets
+  repeated string socket_name = 1;
+}
+
+message Pong {
+  string socket_name = 1;
+  SocketError error = 2;
+}
+
+message PongResponse {
+  repeated Pong pong = 1;
+}
+
+message ListClientsRequest {
+  repeated string socket_name = 1;
+}
 
 message Client {
   string addr = 1;
@@ -28,6 +65,7 @@ message Client {
   uint32 tx_bytes = 8;
 }
 
-message ListResponse {
+message ListClientsResponse {
   repeated Client client = 1;
+  repeated SocketError error = 2;
 }

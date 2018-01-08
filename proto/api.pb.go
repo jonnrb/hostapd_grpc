@@ -8,11 +8,16 @@ It is generated from these files:
 	api.proto
 
 It has these top-level messages:
+	SocketError
+	ListSocketsRequest
+	Socket
+	SocketList
 	PingRequest
+	Pong
 	PongResponse
-	ListRequest
+	ListClientsRequest
 	Client
-	ListResponse
+	ListClientsResponse
 */
 package hostapd
 
@@ -36,29 +41,174 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
+type ErrorCode int32
+
+const (
+	ErrorCode_OK                ErrorCode = 0
+	ErrorCode_DEADLINE_EXCEEDED ErrorCode = 1
+	ErrorCode_INTERNAL          ErrorCode = 2
+)
+
+var ErrorCode_name = map[int32]string{
+	0: "OK",
+	1: "DEADLINE_EXCEEDED",
+	2: "INTERNAL",
+}
+var ErrorCode_value = map[string]int32{
+	"OK":                0,
+	"DEADLINE_EXCEEDED": 1,
+	"INTERNAL":          2,
+}
+
+func (x ErrorCode) String() string {
+	return proto.EnumName(ErrorCode_name, int32(x))
+}
+func (ErrorCode) EnumDescriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
+
+type SocketError struct {
+	Msg    string    `protobuf:"bytes,1,opt,name=msg" json:"msg,omitempty"`
+	Code   ErrorCode `protobuf:"varint,2,opt,name=code,enum=hostapd.ErrorCode" json:"code,omitempty"`
+	CErrno int32     `protobuf:"varint,3,opt,name=c_errno,json=cErrno" json:"c_errno,omitempty"`
+}
+
+func (m *SocketError) Reset()                    { *m = SocketError{} }
+func (m *SocketError) String() string            { return proto.CompactTextString(m) }
+func (*SocketError) ProtoMessage()               {}
+func (*SocketError) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
+
+func (m *SocketError) GetMsg() string {
+	if m != nil {
+		return m.Msg
+	}
+	return ""
+}
+
+func (m *SocketError) GetCode() ErrorCode {
+	if m != nil {
+		return m.Code
+	}
+	return ErrorCode_OK
+}
+
+func (m *SocketError) GetCErrno() int32 {
+	if m != nil {
+		return m.CErrno
+	}
+	return 0
+}
+
+type ListSocketsRequest struct {
+}
+
+func (m *ListSocketsRequest) Reset()                    { *m = ListSocketsRequest{} }
+func (m *ListSocketsRequest) String() string            { return proto.CompactTextString(m) }
+func (*ListSocketsRequest) ProtoMessage()               {}
+func (*ListSocketsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
+
+type Socket struct {
+	Name string `protobuf:"bytes,1,opt,name=name" json:"name,omitempty"`
+}
+
+func (m *Socket) Reset()                    { *m = Socket{} }
+func (m *Socket) String() string            { return proto.CompactTextString(m) }
+func (*Socket) ProtoMessage()               {}
+func (*Socket) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{2} }
+
+func (m *Socket) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+type SocketList struct {
+	Socket []*Socket `protobuf:"bytes,1,rep,name=socket" json:"socket,omitempty"`
+}
+
+func (m *SocketList) Reset()                    { *m = SocketList{} }
+func (m *SocketList) String() string            { return proto.CompactTextString(m) }
+func (*SocketList) ProtoMessage()               {}
+func (*SocketList) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{3} }
+
+func (m *SocketList) GetSocket() []*Socket {
+	if m != nil {
+		return m.Socket
+	}
+	return nil
+}
+
 type PingRequest struct {
+	// no socket name pings all sockets
+	SocketName []string `protobuf:"bytes,1,rep,name=socket_name,json=socketName" json:"socket_name,omitempty"`
 }
 
 func (m *PingRequest) Reset()                    { *m = PingRequest{} }
 func (m *PingRequest) String() string            { return proto.CompactTextString(m) }
 func (*PingRequest) ProtoMessage()               {}
-func (*PingRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
+func (*PingRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{4} }
+
+func (m *PingRequest) GetSocketName() []string {
+	if m != nil {
+		return m.SocketName
+	}
+	return nil
+}
+
+type Pong struct {
+	SocketName string       `protobuf:"bytes,1,opt,name=socket_name,json=socketName" json:"socket_name,omitempty"`
+	Error      *SocketError `protobuf:"bytes,2,opt,name=error" json:"error,omitempty"`
+}
+
+func (m *Pong) Reset()                    { *m = Pong{} }
+func (m *Pong) String() string            { return proto.CompactTextString(m) }
+func (*Pong) ProtoMessage()               {}
+func (*Pong) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{5} }
+
+func (m *Pong) GetSocketName() string {
+	if m != nil {
+		return m.SocketName
+	}
+	return ""
+}
+
+func (m *Pong) GetError() *SocketError {
+	if m != nil {
+		return m.Error
+	}
+	return nil
+}
 
 type PongResponse struct {
+	Pong []*Pong `protobuf:"bytes,1,rep,name=pong" json:"pong,omitempty"`
 }
 
 func (m *PongResponse) Reset()                    { *m = PongResponse{} }
 func (m *PongResponse) String() string            { return proto.CompactTextString(m) }
 func (*PongResponse) ProtoMessage()               {}
-func (*PongResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
+func (*PongResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{6} }
 
-type ListRequest struct {
+func (m *PongResponse) GetPong() []*Pong {
+	if m != nil {
+		return m.Pong
+	}
+	return nil
 }
 
-func (m *ListRequest) Reset()                    { *m = ListRequest{} }
-func (m *ListRequest) String() string            { return proto.CompactTextString(m) }
-func (*ListRequest) ProtoMessage()               {}
-func (*ListRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{2} }
+type ListClientsRequest struct {
+	SocketName []string `protobuf:"bytes,1,rep,name=socket_name,json=socketName" json:"socket_name,omitempty"`
+}
+
+func (m *ListClientsRequest) Reset()                    { *m = ListClientsRequest{} }
+func (m *ListClientsRequest) String() string            { return proto.CompactTextString(m) }
+func (*ListClientsRequest) ProtoMessage()               {}
+func (*ListClientsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{7} }
+
+func (m *ListClientsRequest) GetSocketName() []string {
+	if m != nil {
+		return m.SocketName
+	}
+	return nil
+}
 
 type Client struct {
 	Addr          string   `protobuf:"bytes,1,opt,name=addr" json:"addr,omitempty"`
@@ -74,7 +224,7 @@ type Client struct {
 func (m *Client) Reset()                    { *m = Client{} }
 func (m *Client) String() string            { return proto.CompactTextString(m) }
 func (*Client) ProtoMessage()               {}
-func (*Client) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{3} }
+func (*Client) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{8} }
 
 func (m *Client) GetAddr() string {
 	if m != nil {
@@ -132,28 +282,42 @@ func (m *Client) GetTxBytes() uint32 {
 	return 0
 }
 
-type ListResponse struct {
-	Client []*Client `protobuf:"bytes,1,rep,name=client" json:"client,omitempty"`
+type ListClientsResponse struct {
+	Client []*Client      `protobuf:"bytes,1,rep,name=client" json:"client,omitempty"`
+	Error  []*SocketError `protobuf:"bytes,2,rep,name=error" json:"error,omitempty"`
 }
 
-func (m *ListResponse) Reset()                    { *m = ListResponse{} }
-func (m *ListResponse) String() string            { return proto.CompactTextString(m) }
-func (*ListResponse) ProtoMessage()               {}
-func (*ListResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{4} }
+func (m *ListClientsResponse) Reset()                    { *m = ListClientsResponse{} }
+func (m *ListClientsResponse) String() string            { return proto.CompactTextString(m) }
+func (*ListClientsResponse) ProtoMessage()               {}
+func (*ListClientsResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{9} }
 
-func (m *ListResponse) GetClient() []*Client {
+func (m *ListClientsResponse) GetClient() []*Client {
 	if m != nil {
 		return m.Client
 	}
 	return nil
 }
 
+func (m *ListClientsResponse) GetError() []*SocketError {
+	if m != nil {
+		return m.Error
+	}
+	return nil
+}
+
 func init() {
+	proto.RegisterType((*SocketError)(nil), "hostapd.SocketError")
+	proto.RegisterType((*ListSocketsRequest)(nil), "hostapd.ListSocketsRequest")
+	proto.RegisterType((*Socket)(nil), "hostapd.Socket")
+	proto.RegisterType((*SocketList)(nil), "hostapd.SocketList")
 	proto.RegisterType((*PingRequest)(nil), "hostapd.PingRequest")
+	proto.RegisterType((*Pong)(nil), "hostapd.Pong")
 	proto.RegisterType((*PongResponse)(nil), "hostapd.PongResponse")
-	proto.RegisterType((*ListRequest)(nil), "hostapd.ListRequest")
+	proto.RegisterType((*ListClientsRequest)(nil), "hostapd.ListClientsRequest")
 	proto.RegisterType((*Client)(nil), "hostapd.Client")
-	proto.RegisterType((*ListResponse)(nil), "hostapd.ListResponse")
+	proto.RegisterType((*ListClientsResponse)(nil), "hostapd.ListClientsResponse")
+	proto.RegisterEnum("hostapd.ErrorCode", ErrorCode_name, ErrorCode_value)
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -167,8 +331,9 @@ const _ = grpc.SupportPackageIsVersion4
 // Client API for HostapdControl service
 
 type HostapdControlClient interface {
+	ListSockets(ctx context.Context, in *ListSocketsRequest, opts ...grpc.CallOption) (*SocketList, error)
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PongResponse, error)
-	ListClients(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListResponse, error)
+	ListClients(ctx context.Context, in *ListClientsRequest, opts ...grpc.CallOption) (*ListClientsResponse, error)
 }
 
 type hostapdControlClient struct {
@@ -177,6 +342,15 @@ type hostapdControlClient struct {
 
 func NewHostapdControlClient(cc *grpc.ClientConn) HostapdControlClient {
 	return &hostapdControlClient{cc}
+}
+
+func (c *hostapdControlClient) ListSockets(ctx context.Context, in *ListSocketsRequest, opts ...grpc.CallOption) (*SocketList, error) {
+	out := new(SocketList)
+	err := grpc.Invoke(ctx, "/hostapd.HostapdControl/ListSockets", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *hostapdControlClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PongResponse, error) {
@@ -188,8 +362,8 @@ func (c *hostapdControlClient) Ping(ctx context.Context, in *PingRequest, opts .
 	return out, nil
 }
 
-func (c *hostapdControlClient) ListClients(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListResponse, error) {
-	out := new(ListResponse)
+func (c *hostapdControlClient) ListClients(ctx context.Context, in *ListClientsRequest, opts ...grpc.CallOption) (*ListClientsResponse, error) {
+	out := new(ListClientsResponse)
 	err := grpc.Invoke(ctx, "/hostapd.HostapdControl/ListClients", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
@@ -200,12 +374,31 @@ func (c *hostapdControlClient) ListClients(ctx context.Context, in *ListRequest,
 // Server API for HostapdControl service
 
 type HostapdControlServer interface {
+	ListSockets(context.Context, *ListSocketsRequest) (*SocketList, error)
 	Ping(context.Context, *PingRequest) (*PongResponse, error)
-	ListClients(context.Context, *ListRequest) (*ListResponse, error)
+	ListClients(context.Context, *ListClientsRequest) (*ListClientsResponse, error)
 }
 
 func RegisterHostapdControlServer(s *grpc.Server, srv HostapdControlServer) {
 	s.RegisterService(&_HostapdControl_serviceDesc, srv)
+}
+
+func _HostapdControl_ListSockets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSocketsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HostapdControlServer).ListSockets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/hostapd.HostapdControl/ListSockets",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HostapdControlServer).ListSockets(ctx, req.(*ListSocketsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _HostapdControl_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -227,7 +420,7 @@ func _HostapdControl_Ping_Handler(srv interface{}, ctx context.Context, dec func
 }
 
 func _HostapdControl_ListClients_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListRequest)
+	in := new(ListClientsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -239,7 +432,7 @@ func _HostapdControl_ListClients_Handler(srv interface{}, ctx context.Context, d
 		FullMethod: "/hostapd.HostapdControl/ListClients",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(HostapdControlServer).ListClients(ctx, req.(*ListRequest))
+		return srv.(HostapdControlServer).ListClients(ctx, req.(*ListClientsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -248,6 +441,10 @@ var _HostapdControl_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "hostapd.HostapdControl",
 	HandlerType: (*HostapdControlServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListSockets",
+			Handler:    _HostapdControl_ListSockets_Handler,
+		},
 		{
 			MethodName: "Ping",
 			Handler:    _HostapdControl_Ping_Handler,
@@ -264,25 +461,40 @@ var _HostapdControl_serviceDesc = grpc.ServiceDesc{
 func init() { proto.RegisterFile("api.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
-	// 315 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x4c, 0x91, 0x4f, 0x4b, 0xf3, 0x40,
-	0x10, 0x87, 0x9b, 0xb7, 0x7d, 0xd3, 0x66, 0xfa, 0x47, 0x58, 0x14, 0x56, 0x45, 0x08, 0x01, 0xb1,
-	0xa7, 0x1e, 0x2a, 0xe2, 0xc5, 0x93, 0xbd, 0x78, 0x50, 0x28, 0xc1, 0x7b, 0x48, 0x93, 0xb1, 0x2e,
-	0xa6, 0xd9, 0xb8, 0x3b, 0x42, 0xfc, 0x00, 0x7e, 0x57, 0x3f, 0x86, 0xec, 0x6e, 0x9b, 0xee, 0x6d,
-	0xe6, 0xf7, 0x64, 0xc2, 0xce, 0x33, 0x10, 0xe5, 0x8d, 0x58, 0x34, 0x4a, 0x92, 0x64, 0xc3, 0x77,
-	0xa9, 0x29, 0x6f, 0xca, 0x64, 0x0a, 0xe3, 0xb5, 0xa8, 0xb7, 0x29, 0x7e, 0x7e, 0xa1, 0xa6, 0x64,
-	0x06, 0x93, 0xb5, 0x34, 0xad, 0x6e, 0x64, 0xad, 0xd1, 0xe0, 0x67, 0xa1, 0xe9, 0x80, 0x7f, 0x03,
-	0x08, 0x57, 0x95, 0xc0, 0x9a, 0x18, 0x83, 0x41, 0x5e, 0x96, 0x8a, 0x07, 0x71, 0x30, 0x8f, 0x52,
-	0x5b, 0x9b, 0xec, 0xad, 0xca, 0xb7, 0xfc, 0x5f, 0xdc, 0x37, 0x99, 0xa9, 0xd9, 0x35, 0xcc, 0x0a,
-	0x59, 0xd7, 0x58, 0x10, 0x96, 0x19, 0x89, 0x1d, 0xf2, 0x7e, 0x1c, 0xcc, 0xa7, 0xe9, 0xb4, 0x4b,
-	0x5f, 0xc5, 0x0e, 0xd9, 0x25, 0x44, 0xa2, 0xac, 0x30, 0xdb, 0x69, 0x2c, 0xf8, 0xc0, 0x7e, 0x31,
-	0x32, 0xc1, 0x8b, 0xc6, 0x82, 0x5d, 0x01, 0xa8, 0x36, 0x6b, 0xf2, 0xe2, 0x03, 0x49, 0xf3, 0xff,
-	0x96, 0x46, 0xaa, 0x5d, 0xbb, 0xc0, 0x60, 0x3a, 0xe2, 0xd0, 0x61, 0xea, 0xf0, 0x39, 0x8c, 0x54,
-	0x9b, 0x6d, 0xbe, 0x09, 0x35, 0x1f, 0x5a, 0x38, 0x54, 0xed, 0xa3, 0x69, 0x0d, 0xa2, 0x03, 0x1a,
-	0x39, 0x44, 0x0e, 0x25, 0xf7, 0x30, 0x71, 0x9b, 0x3b, 0x13, 0xec, 0x06, 0xc2, 0xc2, 0x6e, 0xce,
-	0x83, 0xb8, 0x3f, 0x1f, 0x2f, 0x4f, 0x16, 0x7b, 0x85, 0x0b, 0x27, 0x24, 0xdd, 0xe3, 0xe5, 0x4f,
-	0x00, 0xb3, 0x27, 0x87, 0x56, 0xb2, 0x26, 0x25, 0x2b, 0x76, 0x07, 0x03, 0x23, 0x99, 0x9d, 0x76,
-	0x33, 0x9e, 0xf3, 0x8b, 0xb3, 0x63, 0xea, 0xab, 0xef, 0xb1, 0x07, 0x27, 0xdf, 0xfd, 0x5f, 0x7b,
-	0xd3, 0xde, 0x49, 0xbc, 0x69, 0xff, 0xb9, 0x49, 0x6f, 0x13, 0xda, 0x4b, 0xdf, 0xfe, 0x05, 0x00,
-	0x00, 0xff, 0xff, 0x0e, 0xa7, 0x01, 0x0e, 0xf6, 0x01, 0x00, 0x00,
+	// 552 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x94, 0x5f, 0x8f, 0xd2, 0x4c,
+	0x14, 0xc6, 0xb7, 0x50, 0x0a, 0x3d, 0x5d, 0x78, 0x79, 0xcf, 0xee, 0xc6, 0xca, 0xae, 0x11, 0x9b,
+	0xe8, 0x92, 0xbd, 0x20, 0x11, 0x43, 0xe2, 0x2d, 0x42, 0x13, 0x57, 0x11, 0x49, 0x77, 0x2f, 0xbc,
+	0xab, 0xdd, 0x76, 0xc4, 0x2a, 0x74, 0xea, 0xcc, 0x98, 0xe0, 0x17, 0xf5, 0x33, 0xf8, 0x31, 0xcc,
+	0xcc, 0x94, 0x2e, 0x7f, 0x4c, 0xf6, 0x6e, 0xe6, 0xfc, 0x9e, 0x33, 0xe7, 0xf0, 0x9c, 0x43, 0xc1,
+	0x8e, 0xf2, 0xb4, 0x9f, 0x33, 0x2a, 0x28, 0xd6, 0xbf, 0x52, 0x2e, 0xa2, 0x3c, 0xf1, 0x3e, 0x83,
+	0x73, 0x43, 0xe3, 0xef, 0x44, 0xf8, 0x8c, 0x51, 0x86, 0x6d, 0xa8, 0xae, 0xf8, 0xc2, 0x35, 0xba,
+	0x46, 0xcf, 0x0e, 0xe4, 0x11, 0x5f, 0x80, 0x19, 0xd3, 0x84, 0xb8, 0x95, 0xae, 0xd1, 0x6b, 0x0d,
+	0xb0, 0x5f, 0x24, 0xf6, 0x95, 0x7e, 0x4c, 0x13, 0x12, 0x28, 0x8e, 0x8f, 0xa0, 0x1e, 0x87, 0x84,
+	0xb1, 0x8c, 0xba, 0xd5, 0xae, 0xd1, 0xab, 0x05, 0x56, 0xec, 0xcb, 0x9b, 0x77, 0x0a, 0x38, 0x4d,
+	0xb9, 0xd0, 0x55, 0x78, 0x40, 0x7e, 0xfc, 0x24, 0x5c, 0x78, 0x17, 0x60, 0xe9, 0x08, 0x22, 0x98,
+	0x59, 0xb4, 0x22, 0x45, 0x4d, 0x75, 0xf6, 0x86, 0x00, 0x9a, 0xca, 0x4c, 0xbc, 0x04, 0x8b, 0xab,
+	0x9b, 0x6b, 0x74, 0xab, 0x3d, 0x67, 0xf0, 0x5f, 0xd9, 0x84, 0x16, 0x05, 0x05, 0xf6, 0xfa, 0xe0,
+	0xcc, 0xd3, 0x6c, 0x51, 0xd4, 0xc0, 0xa7, 0xe0, 0x68, 0x10, 0x16, 0x05, 0xaa, 0x3d, 0x3b, 0x00,
+	0x1d, 0x9a, 0xc9, 0x32, 0x37, 0x60, 0xce, 0x69, 0xb6, 0x38, 0x14, 0x1a, 0xbb, 0x42, 0xbc, 0x82,
+	0x1a, 0x91, 0xbf, 0x57, 0xb9, 0xe0, 0x0c, 0x4e, 0xf7, 0x1a, 0x50, 0x5e, 0x04, 0x5a, 0xe2, 0xbd,
+	0x84, 0x63, 0xf9, 0x68, 0x40, 0x78, 0x4e, 0x33, 0x4e, 0xf0, 0x19, 0x98, 0x39, 0xcd, 0x16, 0x45,
+	0xef, 0xcd, 0x32, 0x55, 0x89, 0x14, 0xf2, 0x86, 0xda, 0xa2, 0xf1, 0x32, 0x25, 0x59, 0x69, 0xd1,
+	0xc3, 0xed, 0xff, 0x31, 0xc0, 0xd2, 0x39, 0xd2, 0xc4, 0x28, 0x49, 0xd8, 0xc6, 0x44, 0x79, 0x96,
+	0xb1, 0x2f, 0xcb, 0x68, 0xe1, 0x56, 0x54, 0xa2, 0x3a, 0xe3, 0x73, 0x68, 0xc5, 0x34, 0xcb, 0x48,
+	0x2c, 0x48, 0x12, 0x8a, 0x74, 0x45, 0xd4, 0xb0, 0x9a, 0x41, 0xb3, 0x8c, 0xde, 0xa6, 0x2b, 0x82,
+	0xe7, 0x60, 0xa7, 0xc9, 0x92, 0x84, 0x2b, 0x4e, 0x62, 0xd7, 0x54, 0x8a, 0x86, 0x0c, 0x7c, 0xe0,
+	0x24, 0xc6, 0x27, 0x00, 0x6c, 0x1d, 0xe6, 0x91, 0x9a, 0xa7, 0x5b, 0x53, 0xd4, 0x66, 0xeb, 0xb9,
+	0x0e, 0x48, 0x2c, 0xee, 0xb1, 0xa5, 0xb1, 0x28, 0xf1, 0x63, 0x68, 0xb0, 0x75, 0x78, 0xf7, 0x4b,
+	0x10, 0xee, 0xd6, 0x15, 0xac, 0xb3, 0xf5, 0x1b, 0x79, 0x95, 0x48, 0x6c, 0x50, 0x43, 0x23, 0xa1,
+	0x91, 0xf7, 0x0d, 0x4e, 0x76, 0x1c, 0x2a, 0xbc, 0xbd, 0x04, 0x2b, 0x56, 0xa1, 0x83, 0xcd, 0xd0,
+	0xca, 0xa0, 0xc0, 0xdb, 0x03, 0xac, 0x3e, 0x30, 0xc0, 0xab, 0xd7, 0x60, 0x97, 0xcb, 0x8d, 0x16,
+	0x54, 0x3e, 0xbe, 0x6f, 0x1f, 0xe1, 0x19, 0xfc, 0x3f, 0xf1, 0x47, 0x93, 0xe9, 0xf5, 0xcc, 0x0f,
+	0xfd, 0x4f, 0x63, 0xdf, 0x9f, 0xf8, 0x93, 0xb6, 0x81, 0xc7, 0xd0, 0xb8, 0x9e, 0xdd, 0xfa, 0xc1,
+	0x6c, 0x34, 0x6d, 0x57, 0x06, 0xbf, 0x0d, 0x68, 0xbd, 0xd5, 0x0f, 0x8f, 0x69, 0x26, 0x18, 0x5d,
+	0xe2, 0x08, 0x9c, 0xad, 0xed, 0xc7, 0xf3, 0xb2, 0xf0, 0xe1, 0x7f, 0xa2, 0x73, 0xb2, 0xd7, 0x95,
+	0x94, 0x78, 0x47, 0x38, 0x04, 0x53, 0x6e, 0x35, 0xde, 0x37, 0xbd, 0xb5, 0xe4, 0x9d, 0xb3, 0xdd,
+	0x85, 0x2a, 0x9c, 0xf1, 0x8e, 0xf0, 0x9d, 0xae, 0x5c, 0x58, 0xb6, 0x57, 0x79, 0x77, 0xd5, 0x3a,
+	0x17, 0xff, 0x86, 0x9b, 0xb7, 0xee, 0x2c, 0xf5, 0xd5, 0x78, 0xf5, 0x37, 0x00, 0x00, 0xff, 0xff,
+	0x0b, 0xcf, 0x49, 0x72, 0x42, 0x04, 0x00, 0x00,
 }
