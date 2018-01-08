@@ -119,7 +119,8 @@ void PingEach(SocketManager* socket_manager, Iterable&& socket_names,
   }
 }
 
-void ListClientsEach(ControlSocket* socket, ListClientsResponse* list) {
+void ListClientsEach(const std::string& socket_name, ControlSocket* socket,
+                     ListClientsResponse* list) {
   std::string tok;
 
   decltype(list->mutable_error()->Add()) err = nullptr;
@@ -142,6 +143,7 @@ void ListClientsEach(ControlSocket* socket, ListClientsResponse* list) {
   while (strcmp(tok.c_str(), "FAIL\n") != 0 && strcmp(tok.c_str(), "") != 0) {
     auto* client = list->mutable_client()->Add();
     ParseSta(tok, client);
+    client->set_socket_name(socket_name);
     const auto& addr = client->addr();
     decltype(list->mutable_error()->Add()) err = nullptr;
     switch (socket->SendRequest("STA-NEXT " + addr, &tok)) {
@@ -191,12 +193,12 @@ grpc::Status HostapdControlImpl::ListClients(grpc::ServerContext* context,
   if (req->socket_name().empty()) {
     for (auto& socket_name : _socket_manager->Available()) {
       auto socket = _socket_manager->Get(socket_name);
-      ListClientsEach(socket.get(), list);
+      ListClientsEach(socket_name, socket.get(), list);
     }
   } else {
     for (auto& socket_name : req->socket_name()) {
       auto socket = _socket_manager->Get(socket_name);
-      ListClientsEach(socket.get(), list);
+      ListClientsEach(socket_name, socket.get(), list);
     }
   }
   return grpc::Status::OK;

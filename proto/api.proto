@@ -63,6 +63,8 @@ message Client {
 
   uint32 rx_bytes = 7;
   uint32 tx_bytes = 8;
+
+  string socket_name = 9;
 }
 
 message ListClientsResponse {
