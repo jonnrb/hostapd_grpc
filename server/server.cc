@@ -62,6 +62,7 @@ int main(int argc, char** argv) {
   });
 
   signal(SIGINT, handler);
+  signal(SIGTERM, handler);
   auto interrupt_waiter = std::thread([&server]() {
     std::unique_lock<std::mutex> l{mu};
     while (!is_interrupt) interrupt.wait(l);
