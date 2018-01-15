@@ -20,3 +20,16 @@ load(
 )
 
 container_repositories()
+
+git_repository(
+    name = "prometheus_cpp",
+    remote = "https://github.com/jupp0r/prometheus-cpp.git",
+    commit = "743722db96465aa867bf569eb455ad82dab9f819"
+)
+
+load("@prometheus_cpp//:repositories.bzl", "load_prometheus_client_model",
+     "load_civetweb", "load_com_google_googlebenchmark")
+
+load_prometheus_client_model()
+load_civetweb()
+load_com_google_googlebenchmark()
