@@ -10,16 +10,37 @@ server with the API spec'd all in protobuf.
 
 ### Usage
 
-TODO: flags
+There needs to be a teensy bit of corrdination with hostapd. The usual
+`ctrl_interface` option is `/var/run/hostapd`. hostapd\_grpc needs read access
+to this directory and the sockets created there. A part of the `wpa_ctrl`
+protocol involves creation of a client socket that hostapd can read. While it
+doesn't matter what path hostapd and hostapd\_grpc see the `ctrl_interface`
+directory at, the client socket directory path *must* be the same as seen by
+hostapd and hostapd\_grpc. Additionally, hostapd\_grpc will think anything that
+moves inside the `ctrl_interface` directory is a valid hostapd socket and will
+treat it as such. Separate the client and the control directories or prepare
+for crash and boom.
 
-Since I haven't spun out configuration into flags just yet, the best way to use
-this right now is via Docker.
+By default, gRPC pokes out on port 8080 and Prometheus metrics are on port 9090.
 
-gRPC pokes out on port 8080 and Prometheus metrics are on port 9090. It looks
-for hostapd control sockets (the `ctrl_interface` hostapd config option; has to
-be set per SSID) in `/hostapd_control` until I make flags. It creates ephemeral
-client sockets in `/hostapd_clients` which must be present on hostapd's
-filesystem and on hostapd\_grpc's filesystem *at that path*.
+Probably not up to date exerpt of `./hostapd_grpc -help`:
+
+```
+  Flags from server/server.cc:
+    -hostapd_client_dir (Path to place client sockets in; hostapd must be able
+      to read the same directory at this path!) type: string
+      default: "/var/run/hostapd_grpc"
+    -hostapd_control_dir (Path specified by ctrl_interface hostapd option)
+      type: string default: "/var/run/hostapd"
+    -hostapd_grpc_addr (Address gRPC will bind) type: string
+      default: "0.0.0.0:8080"
+    -hostapd_metrics_addr (Address Prometheus metrics will bind) type: string
+      default: "0.0.0.0:9090"
+    -hostapd_metrics_scrape_interval_ms (How often to scrape metrics from
+      hostapd in milliseconds) type: uint64 default: 5000
+```
+
+### Docker
 
 Example `docker-compose.yml`:
 
@@ -33,15 +54,15 @@ services:
     volumes:
       - ./hostapd.conf.tmpl:/data/hostapd.conf.tmpl:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - hostapd_control:/hostapd_control:rw
-      - hostapd_clients:/hostapd_clients:ro
+      - hostapd_control:/var/run/hostapd:rw
+      - hostapd_clients:/var/run/hostapd_grpc:ro
     network_mode: host
 
   hostapd_grpc:
     image: jonnrb/hostapd_grpc
     volumes:
-      - hostapd_control:/hostapd_control:ro
-      - hostapd_clients:/hostapd_clients:rw
+      - hostapd_control:/var/run/hostapd:ro
+      - hostapd_clients:/var/run/hostapd_grpc:rw
     networks:
       - private
 

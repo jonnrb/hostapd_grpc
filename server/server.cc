@@ -15,6 +15,17 @@
 #include "server/hostapd_control_impl.h"
 #include "server/metrics.h"
 
+DEFINE_string(hostapd_grpc_addr, "0.0.0.0:8080", "Address gRPC will bind");
+DEFINE_string(hostapd_metrics_addr, "0.0.0.0:9090",
+              "Address Prometheus metrics will bind");
+DEFINE_string(hostapd_control_dir, "/var/run/hostapd",
+              "Path specified by ctrl_interface hostapd option");
+DEFINE_string(hostapd_client_dir, "/var/run/hostapd_grpc",
+              "Path to place client sockets in; hostapd must be able to read "
+              "the same directory at this path!");
+DEFINE_uint64(hostapd_metrics_scrape_interval_ms, 5000,
+              "How often to scrape metrics from hostapd in milliseconds");
+
 namespace {
 std::condition_variable interrupt{};
 std::mutex mu{};
@@ -34,24 +45,21 @@ int main(int argc, char** argv) {
 
   gflags::ParseCommandLineFlags(&argc, &argv, true);
 
-  const std::string server_address{"0.0.0.0:8080"};
-  const std::string metrics_address{"0.0.0.0:9090"};
-  const std::string hostapd_control_dir{"/hostapd_control"};
-  const std::string hostapd_client_dir{"/hostapd_clients"};
-
   std::unique_ptr<hostapd::SocketManager> socket_manager{
-      new hostapd::SocketManager(5, hostapd_control_dir, hostapd_client_dir)};
+      new hostapd::SocketManager(5, FLAGS_hostapd_control_dir,
+                                 FLAGS_hostapd_client_dir)};
   hostapd::HostapdControlImpl service{std::move(socket_manager)};
 
   grpc::ServerBuilder builder;
-  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+  builder.AddListeningPort(FLAGS_hostapd_grpc_addr,
+                           grpc::InsecureServerCredentials());
   builder.RegisterService(&service);
 
   auto server = builder.BuildAndStart();
-  LOG(INFO) << "Server listening on " << server_address;
+  LOG(INFO) << "Server listening on " << FLAGS_hostapd_grpc_addr;
 
-  prometheus::Exposer exposer{metrics_address};
-  LOG(INFO) << "Metrics listening on " << metrics_address;
+  prometheus::Exposer exposer{FLAGS_hostapd_metrics_addr};
+  LOG(INFO) << "Metrics listening on " << FLAGS_hostapd_metrics_addr;
 
   auto registry = std::make_shared<prometheus::Registry>();
   exposer.RegisterCollectable(registry);
@@ -59,8 +67,10 @@ int main(int argc, char** argv) {
     hostapd::Metrics metrics(registry);
 
     std::unique_lock<std::mutex> l(mu);
+    const std::chrono::milliseconds scrape_ms{
+        FLAGS_hostapd_metrics_scrape_interval_ms};
     while (!is_interrupt) {
-      auto status = interrupt.wait_for(l, std::chrono::seconds{5});
+      auto status = interrupt.wait_for(l, scrape_ms);
       if (status == std::cv_status::timeout) {
         metrics.Scrape(&service);
       }
