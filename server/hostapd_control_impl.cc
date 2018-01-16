@@ -1,8 +1,9 @@
 #include "server/hostapd_control_impl.h"
 
-#include <iostream>
 #include <regex>
 #include <string>
+
+#include <glog/logging.h>
 
 namespace hostapd {
 namespace {
@@ -17,7 +18,7 @@ void ParseStaLine(const std::string& line, Client* client) {
   std::smatch match;
 
   if (!std::regex_match(line, match, kv_re)) {
-    std::cerr << "error matching line: \"" << line << "\"" << std::endl;
+    LOG(ERROR) << "error matching line: \"" << line << "\"";
     return;
   }
 

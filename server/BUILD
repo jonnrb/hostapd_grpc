@@ -1,6 +1,3 @@
-load("@io_bazel_rules_docker//container:image.bzl", "container_image")
-load("@io_bazel_rules_docker//container:push.bzl", "container_push")
-
 cc_library(
     name = "hostapd_control_impl",
     srcs = ["hostapd_control_impl.cc"],
@@ -8,6 +5,7 @@ cc_library(
     deps = [
         ":socket",
         "//proto:cc_api",
+        "@com_google_glog//:glog",
     ],
 )
 
@@ -17,6 +15,7 @@ cc_library(
     hdrs = ["metrics.h"],
     deps = [
         "//proto:cc_api",
+        "@com_google_glog//:glog",
         "@prometheus_cpp//:prometheus_cpp",
     ],
 )
@@ -34,6 +33,8 @@ cc_binary(
     deps = [
         ":hostapd_control_impl",
         ":metrics",
+        "@com_github_gflags_gflags//:gflags",
+        "@com_google_glog//:glog",
     ],
 )
 

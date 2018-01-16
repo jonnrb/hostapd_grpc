@@ -4,6 +4,8 @@
 #include <string>
 #include <thread>
 
+#include <gflags/gflags.h>
+#include <glog/logging.h>
 #include <grpc++/security/server_credentials.h>
 #include <grpc++/server.h>
 #include <grpc++/server_builder.h>
@@ -28,6 +30,10 @@ void handler(int _) {
 }
 
 int main(int argc, char** argv) {
+  google::InitGoogleLogging(argv[0]);
+
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
+
   const std::string server_address{"0.0.0.0:8080"};
   const std::string metrics_address{"0.0.0.0:9090"};
   const std::string hostapd_control_dir{"/hostapd_control"};
@@ -42,10 +48,10 @@ int main(int argc, char** argv) {
   builder.RegisterService(&service);
 
   auto server = builder.BuildAndStart();
-  std::cout << "Server listening on " << server_address << std::endl;
+  LOG(INFO) << "Server listening on " << server_address;
 
   prometheus::Exposer exposer{metrics_address};
-  std::cout << "Metrics listening on " << metrics_address << std::endl;
+  LOG(INFO) << "Metrics listening on " << metrics_address;
 
   auto registry = std::make_shared<prometheus::Registry>();
   exposer.RegisterCollectable(registry);
@@ -72,5 +78,5 @@ int main(int argc, char** argv) {
   server->Wait();
   interrupt_waiter.join();
   metrics_collector.join();
-  std::cout << "Server shut down" << std::endl;
+  LOG(INFO) << "Server shut down";
 }

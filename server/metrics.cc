@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include <glog/logging.h>
 #include <prometheus/gauge.h>
 #include <prometheus/gauge_builder.h>
 #include <prometheus/registry.h>
@@ -31,8 +32,8 @@ std::vector<std::string> ListSockets(HostapdControl::Service* service) {
 
   auto status = service->ListSockets(nullptr, &req, &res);
   if (!status.ok()) {
-    std::cerr << "error collecting metrics (listing hostapd sockets): "
-              << std::quoted(status.error_message().c_str()) << std::endl;
+    LOG(ERROR) << "error collecting metrics (listing hostapd sockets): "
+               << std::quoted(status.error_message().c_str());
     return ret;
   }
 
@@ -56,9 +57,9 @@ std::map<std::string, int> ListClients(const std::vector<std::string> sockets,
 
   std::map<std::string, int> ret{};
   for (const auto& error : res.error()) {
-    std::cerr << "error listing clients on socket (code "
-              << ErrorCode_Name(error.code())
-              << "): " << std::quoted(error.msg().c_str()) << std::endl;
+    LOG(ERROR) << "error listing clients on socket (code "
+               << ErrorCode_Name(error.code())
+               << "): " << std::quoted(error.msg().c_str());
   }
   for (const auto& client : res.client()) {
     ++ret[client.socket_name()];
