@@ -97,4 +97,4 @@ If you find this neat and whatnot, I'm open to implementing new features and
 fixing bugs. Just add an issue or make a PR!
 
 I'm currently using this to provide data to
-[wifi_dash](https://github.com/JonNRb/wifi_dash).
+[wifi_dash](https://git.jonnrb.com/jon/wifi_dash).
