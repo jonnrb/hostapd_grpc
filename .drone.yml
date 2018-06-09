@@ -4,3 +4,11 @@ pipeline:
     repo: jonnrb/hostapd_grpc
     secrets: [ docker_username, docker_password ]
 
+  trigger:
+    image: plugins/downstream
+    server: https://drone.jonnrb.com
+    fork: true
+    repositories:
+      - jon/wifi_dash
+    secrets: [ downstream_token ]
+
