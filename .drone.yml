@@ -1,0 +1,6 @@
+pipeline:
+  docker:
+    image: plugins/docker
+    repo: jonnrb/hostapd_grpc
+    secrets: [ docker_username, docker_password ]
+
