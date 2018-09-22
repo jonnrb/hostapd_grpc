@@ -47,6 +47,7 @@ message PongResponse {
 }
 
 message ListClientsRequest {
+  // If empty, all sockets served by the endpoint are considered.
   repeated string socket_name = 1;
 }
 
