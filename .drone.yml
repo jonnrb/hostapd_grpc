@@ -1,15 +1,29 @@
-pipeline:
-  docker:
-    image: plugins/docker
-    repo: jonnrb/hostapd_grpc
-    storage_driver: overlay2
-    secrets: [ docker_username, docker_password ]
+---
+kind: pipeline
+name: default
 
-  trigger:
-    image: plugins/downstream
-    server: https://drone.jonnrb.com
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: docker
+  image: plugins/docker
+  settings:
+    password:
+      from_secret: docker_password
+    repo: jonnrb/hostapd_grpc
+    username:
+      from_secret: docker_username
+
+- name: trigger
+  image: plugins/downstream
+  settings:
     fork: true
     repositories:
-      - jon/wifi_dash
-    secrets: [ downstream_token ]
+    - jon/wifi_dash
+    server: https://drone.jonnrb.com
+    token:
+      from_secret: drone_token
 
+...
