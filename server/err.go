@@ -49,7 +49,7 @@ func reqErrToHostapdErr(rErr *socket.RequestError) *hostapd.SocketError {
 	if !ok {
 		errno = 0
 	}
-	sErr.Msg = rErr.Errno.Error()
+	sErr.Msg = errno.Error()
 	sErr.CErrno = int32(errno)
 	switch rErr.Code {
 	case socket.DeadlineExceeded:
