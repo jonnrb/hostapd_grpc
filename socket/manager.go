@@ -2,9 +2,11 @@ package socket
 
 import (
 	"errors"
+	"log"
 	"os"
 	"path"
 	"sync"
+	"syscall"
 )
 
 type Manager struct {
@@ -20,8 +22,10 @@ type Manager struct {
 }
 
 type sharedSocket struct {
+	device, clientDir string
+
 	smu sync.Mutex
-	s   *wpaCtrl
+	s   Socket
 
 	fmu    sync.Mutex
 	refs   int
@@ -35,16 +39,58 @@ func openShared(device, clientDir string) (*sharedSocket, error) {
 	}
 
 	return &sharedSocket{
-		s:    s.(*wpaCtrl),
-		refs: 1,
+		device:    device,
+		clientDir: clientDir,
+		s:         s,
+		refs:      1,
 	}, nil
+}
+
+func isSocketDead(err error) (dead bool) {
+	var (
+		reqErr *RequestError
+		errno  syscall.Errno
+		ok     bool
+	)
+	if reqErr, ok = err.(*RequestError); !ok {
+		return
+	}
+	if errno, ok = reqErr.Errno.(syscall.Errno); !ok {
+		return
+	}
+	dead = !errno.Temporary()
+	return
+}
+
+// sh.smu must be held.
+func (sh *sharedSocket) reconnect() error {
+	sh.s.Close()
+	sh.s = nil
+
+	var err error
+	sh.s, err = Open(sh.device, sh.clientDir)
+	return err
 }
 
 func (sh *sharedSocket) SendRawCmd(cmd string) (string, error) {
 	sh.smu.Lock()
 	defer sh.smu.Unlock()
 
-	return sh.s.SendRawCmd(cmd)
+	s, err := sh.s.SendRawCmd(cmd)
+
+	// Try to save a borked socket once per call.
+	if isSocketDead(err) {
+		log.Println("Recovering dead socket; err =", err)
+		err = sh.reconnect()
+		if err != nil {
+			log.Println("Could not recover dead socket:", err)
+			return "", err
+		}
+		log.Println("Recovered dead socket")
+		s, err = sh.s.SendRawCmd(cmd)
+	}
+
+	return s, err
 }
 
 func (sh *sharedSocket) inc() (closed bool) {

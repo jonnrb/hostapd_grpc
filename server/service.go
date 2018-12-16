@@ -3,6 +3,7 @@ package server
 import (
 	"bufio"
 	"context"
+	"log"
 	"regexp"
 	"strconv"
 	"strings"
@@ -78,6 +79,7 @@ func (s *Service) pingSocket(ctx context.Context, sockName string) (*hostapd.Pon
 func (s *Service) Ping(ctx context.Context, req *hostapd.PingRequest) (*hostapd.PongResponse, error) {
 	sockets, err := s.getSockets(req)
 	if err != nil {
+		log.Println("Error getting sockets:", err)
 		return nil, err
 	}
 
@@ -85,6 +87,7 @@ func (s *Service) Ping(ctx context.Context, req *hostapd.PingRequest) (*hostapd.
 	for _, sockName := range sockets {
 		pong, err := s.pingSocket(ctx, sockName)
 		if err != nil {
+			log.Printf("Error pinging %q: %v", sockName, err)
 			return nil, err
 		}
 		res.Pong = append(res.Pong, pong)
@@ -181,10 +184,12 @@ func (s *Service) ListClients(ctx context.Context, req *hostapd.ListClientsReque
 		clis, err := s.listClientsOnSock(ctx, sockName)
 		switch err := err.(type) {
 		case *socket.RequestError:
+			log.Printf("RequestError for ListClients on %q: %v", sockName, err)
 			res.Error = append(res.Error, reqErrToHostapdErr(err))
 		case nil:
 			res.Client = append(res.Client, clis...)
 		default:
+			log.Printf("Error for ListClients on %q: %v", sockName, err)
 			return nil, errToStatus(err).Err()
 		}
 	}
